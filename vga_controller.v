@@ -74,22 +74,52 @@ module vga_controller (
     wire [9:0] px = h_cnt;
     wire [9:0] py = v_cnt;
 
-    // --- Track rectangles (MUST match collision_detector.v) ---
-    wire in_A = (px >= 20 ) && (px < 360) && (py >= 40 ) && (py < 100);
-    wire in_B = (px >= 240) && (px < 310) && (py >= 80 ) && (py < 230);
-    wire in_C = (px >= 120) && (px < 520) && (py >= 210) && (py < 270);
-    wire in_D = (px >= 460) && (px < 540) && (py >= 120) && (py < 430);
-    wire in_E = (px >= 200) && (px < 540) && (py >= 370) && (py < 430);
-    wire in_F = (px >= 60 ) && (px < 310) && (py >= 330) && (py < 430);
-    wire in_G = (px >= 20 ) && (px < 280) && (py >= 400) && (py < 470);
-    wire on_road = in_A | in_B | in_C | in_D | in_E | in_F | in_G;
+    // --- Track rectangles (must stay aligned with collision_detector.v) ---
+    function is_road;
+        input [9:0] x;
+        input [9:0] y;
+        begin
+            is_road =
+                // A: start corridor
+                ((x >= 10'd20 ) && (x < 10'd430) && (y >= 10'd40 ) && (y < 10'd100)) ||
+                // B: left chicane region
+                ((x >= 10'd95 ) && (x < 10'd290) && (y >= 10'd90 ) && (y < 10'd250)) ||
+                // C: loop entry connector
+                ((x >= 10'd260) && (x < 10'd340) && (y >= 10'd120) && (y < 10'd190)) ||
+                // D/E/F/G: main right loop
+                ((x >= 10'd300) && (x < 10'd570) && (y >= 10'd140) && (y < 10'd190)) ||
+                ((x >= 10'd530) && (x < 10'd600) && (y >= 10'd140) && (y < 10'd430)) ||
+                ((x >= 10'd300) && (x < 10'd570) && (y >= 10'd380) && (y < 10'd430)) ||
+                ((x >= 10'd300) && (x < 10'd350) && (y >= 10'd140) && (y < 10'd430)) ||
+                // H/I/J: left bay
+                ((x >= 10'd140) && (x < 10'd300) && (y >= 10'd300) && (y < 10'd350)) ||
+                ((x >= 10'd140) && (x < 10'd180) && (y >= 10'd300) && (y < 10'd430)) ||
+                ((x >= 10'd250) && (x < 10'd300) && (y >= 10'd300) && (y < 10'd430)) ||
+                // K: finish corridor
+                ((x >= 10'd20 ) && (x < 10'd620) && (y >= 10'd400) && (y < 10'd470));
+        end
+    endfunction
+
+    wire on_road = is_road(px, py);
 
     // Zones
-    wire in_stop_px = (px >= 280) && (px < 360) && (py >= 40) && (py < 100);
-    wire in_park_px = (px >= 20 ) && (px < 120) && (py >= 420) && (py < 470);
+    wire in_stop_px = (px >= 330) && (px < 420) && (py >= 40) && (py < 100);
+    wire in_park_px = (px >= 20 ) && (px < 120) && (py >= 400) && (py < 470);
+
+    // Road-edge extraction to draw white lane markings around the asphalt.
+    wire [9:0] px_m1 = (px == 0)       ? 10'd0   : (px - 10'd1);
+    wire [9:0] px_p1 = (px == 10'd639) ? 10'd639 : (px + 10'd1);
+    wire [9:0] py_m1 = (py == 0)       ? 10'd0   : (py - 10'd1);
+    wire [9:0] py_p1 = (py == 10'd479) ? 10'd479 : (py + 10'd1);
+
+    wire road_n = is_road(px,    py_m1);
+    wire road_s = is_road(px,    py_p1);
+    wire road_w = is_road(px_m1, py);
+    wire road_e = is_road(px_p1, py);
+    wire road_edge = on_road && !(road_n && road_s && road_w && road_e);
 
     // Start / finish markings
-    wire start_line  = (px >= 10'd75) && (px < 10'd80) &&
+    wire start_line  = (px >= 10'd75) && (px < 10'd82) &&
                        (py >= 10'd40) && (py < 10'd100);
     wire finish_line = in_park_px && (px[3] ^ py[3]);
 
@@ -119,28 +149,27 @@ module vga_controller (
         end
     endfunction
 
-    wire c1  = cone_at(10'd150, 10'd110, px, py);
-    wire c2  = cone_at(10'd220, 10'd110, px, py);
-    wire c3  = cone_at(10'd100, 10'd320, px, py);
-    wire c4  = cone_at(10'd180, 10'd320, px, py);
-    wire c5  = cone_at(10'd260, 10'd320, px, py);
-    wire c6  = cone_at(10'd340, 10'd210, px, py);
-    wire c7  = cone_at(10'd420, 10'd210, px, py);
-    wire c8  = cone_at(10'd560, 10'd200, px, py);
-    wire c9  = cone_at(10'd560, 10'd380, px, py);
-    wire c10 = cone_at(10'd180, 10'd440, px, py);
+    wire c1  = cone_at(10'd170, 10'd105, px, py);
+    wire c2  = cone_at(10'd110, 10'd170, px, py);
+    wire c3  = cone_at(10'd150, 10'd235, px, py);
+    wire c4  = cone_at(10'd255, 10'd155, px, py);
+    wire c5  = cone_at(10'd315, 10'd300, px, py);
+    wire c6  = cone_at(10'd315, 10'd385, px, py);
+    wire c7  = cone_at(10'd560, 10'd155, px, py);
+    wire c8  = cone_at(10'd560, 10'd385, px, py);
+    wire c9  = cone_at(10'd175, 10'd300, px, py);
+    wire c10 = cone_at(10'd175, 10'd385, px, py);
     wire on_cone = c1|c2|c3|c4|c5|c6|c7|c8|c9|c10;
 
     // --- White centre-line markings ---
-    wire dash_A = in_A & (py == 70) & (px[4:0] < 5'd20);
-    wire dash_G = in_G & (py == 440) & (px[4:0] < 5'd20);
+    wire stop_dashes = in_stop_px && (px >= 10'd340) && (px < 10'd410) && (py[3:0] < 4'd3);
 
     // --- Color mux with priority ---
     // Priority: cone > nose > car > dash lines > zones > road > grass
     // During blanking interval RGB is forced to 0.
     always @(*) begin
-        // Default = grass (off-road)
-        VGA_R = 4'h2; VGA_G = 4'h8; VGA_B = 4'h2;
+        // Default = asphalt background
+        VGA_R = 4'h4; VGA_G = 4'h4; VGA_B = 4'h4;
 
         if (on_cone) begin
             VGA_R = 4'hF; VGA_G = 4'h6; VGA_B = 4'h0;  // orange
@@ -159,20 +188,17 @@ module vga_controller (
                 VGA_R = 4'h1; VGA_G = 4'h3; VGA_B = 4'hF;
             end
         end
-        else if (start_line || finish_line) begin
+        else if (start_line || finish_line || road_edge || stop_dashes) begin
             VGA_R = 4'hF; VGA_G = 4'hF; VGA_B = 4'hF;  // white line markings
         end
-        else if (dash_A || dash_G) begin
-            VGA_R = 4'hF; VGA_G = 4'hF; VGA_B = 4'hF;  // white dashes
-        end
         else if (in_stop_px) begin
-            VGA_R = 4'hF; VGA_G = 4'h4; VGA_B = 4'h4;  // red STOP zone
+            VGA_R = 4'h6; VGA_G = 4'h6; VGA_B = 4'h6;  // keep STOP area darker under dashes
         end
         else if (in_park_px) begin
-            VGA_R = 4'hE; VGA_G = 4'hE; VGA_B = 4'h2;  // yellow PARK zone
+            VGA_R = 4'h5; VGA_G = 4'h5; VGA_B = 4'h5;  // finish lane tint
         end
         else if (on_road) begin
-            VGA_R = 4'h3; VGA_G = 4'h3; VGA_B = 4'h3;  // dark gray road
+            VGA_R = 4'h3; VGA_G = 4'h3; VGA_B = 4'h3;  // track asphalt
         end
 
         // Force black during blanking interval

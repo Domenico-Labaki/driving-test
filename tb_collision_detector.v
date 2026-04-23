@@ -23,18 +23,18 @@ module tb_collision_detector;
         $display("Grass (10,10): collision=%b (expect 1)", collision_detected);
 
         // Stop zone
-        veh_x = 290; veh_y = 60; #10;
-        $display("Stop (290,60): collision=%b stop=%b (expect 0,1)",
+        veh_x = 350; veh_y = 60; #10;
+        $display("Stop (350,60): collision=%b stop=%b (expect 0,1)",
                  collision_detected, in_stop_zone);
 
         // Park zone
-        veh_x = 40; veh_y = 430; #10;
-        $display("Park (40,430): collision=%b park=%b (expect 0,1)",
+        veh_x = 40; veh_y = 420; #10;
+        $display("Park (40,420): collision=%b park=%b (expect 0,1)",
                  collision_detected, in_parking_zone);
 
         // Middle road (segment C)
-        veh_x = 300; veh_y = 230; #10;
-        $display("Mid road (300,230): collision=%b (expect 0)", collision_detected);
+        veh_x = 320; veh_y = 160; #10;
+        $display("Main loop (320,160): collision=%b (expect 0)", collision_detected);
 
         $stop;
     end

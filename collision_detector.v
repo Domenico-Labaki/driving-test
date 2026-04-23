@@ -6,15 +6,13 @@
 //
 // Coordinate system: 640 (wide) x 480 (tall), origin top-left.
 //
-// Track segments (approximate layout of circuit.jpeg):
-//   A: START corridor  -- horizontal top strip (x=20..280, y=40..90)
-//   B: Diagonal link   -- we approximate as a small vertical segment
-//                        (x=240..300, y=80..220)
-//   C: Middle crossbar -- horizontal (x=120..520, y=210..260)
-//   D: Right loop      -- vertical right column (x=470..530, y=120..420)
-//   E: Right U-turn    -- horizontal bottom link (x=200..530, y=370..420)
-//   F: Slalom lane     -- horizontal (x=60..300, y=340..390)
-//   G: FINISH corridor -- horizontal bottom strip (x=20..260, y=420..470)
+// Track segments (mapped to the provided reference image):
+//   A: START corridor  -- top horizontal strip
+//   B: Left chicane    -- broad diagonal connector region
+//   C: Loop entry      -- connector into center-right loop
+//   D/E/F/G: Main loop -- rectangular loop on right
+//   H/I/J: Left bay    -- parking approach notch
+//   K: FINISH lane     -- bottom horizontal strip
 //
 // Special zones:
 //   STOP zone    -- top-center (x=280..360, y=40..90)   (overlap with A)
@@ -38,17 +36,21 @@ module collision_detector (
     wire [8:0] y0 = veh_y;
     wire [8:0] y1 = veh_y + CAR_H;
 
-    // Helper: car fully inside a rectangle [rx0,rx1] x [ry0,ry1]
-    // (using continuous assigns for simplicity)
-    wire in_A = (x0 >= 10'd20 ) && (x1 <= 10'd360) && (y0 >= 9'd40 ) && (y1 <= 9'd100);
-    wire in_B = (x0 >= 10'd240) && (x1 <= 10'd310) && (y0 >= 9'd80 ) && (y1 <= 9'd230);
-    wire in_C = (x0 >= 10'd120) && (x1 <= 10'd520) && (y0 >= 9'd210) && (y1 <= 9'd270);
-    wire in_D = (x0 >= 10'd460) && (x1 <= 10'd540) && (y0 >= 9'd120) && (y1 <= 9'd430);
-    wire in_E = (x0 >= 10'd200) && (x1 <= 10'd540) && (y0 >= 9'd370) && (y1 <= 9'd430);
-    wire in_F = (x0 >= 10'd60 ) && (x1 <= 10'd310) && (y0 >= 9'd330) && (y1 <= 9'd430);
-    wire in_G = (x0 >= 10'd20 ) && (x1 <= 10'd280) && (y0 >= 9'd400) && (y1 <= 9'd470);
+    // Car must be fully contained in one allowed segment
+    wire in_A = (x0 >= 10'd20 ) && (x1 <= 10'd430) && (y0 >= 9'd40 ) && (y1 <= 9'd100);
+    wire in_B = (x0 >= 10'd95 ) && (x1 <= 10'd290) && (y0 >= 9'd90 ) && (y1 <= 9'd250);
+    wire in_C = (x0 >= 10'd260) && (x1 <= 10'd340) && (y0 >= 9'd120) && (y1 <= 9'd190);
+    wire in_D = (x0 >= 10'd300) && (x1 <= 10'd570) && (y0 >= 9'd140) && (y1 <= 9'd190);
+    wire in_E = (x0 >= 10'd530) && (x1 <= 10'd600) && (y0 >= 9'd140) && (y1 <= 9'd430);
+    wire in_F = (x0 >= 10'd300) && (x1 <= 10'd570) && (y0 >= 9'd380) && (y1 <= 9'd430);
+    wire in_G = (x0 >= 10'd300) && (x1 <= 10'd350) && (y0 >= 9'd140) && (y1 <= 9'd430);
+    wire in_H = (x0 >= 10'd140) && (x1 <= 10'd300) && (y0 >= 9'd300) && (y1 <= 9'd350);
+    wire in_I = (x0 >= 10'd140) && (x1 <= 10'd180) && (y0 >= 9'd300) && (y1 <= 9'd430);
+    wire in_J = (x0 >= 10'd250) && (x1 <= 10'd300) && (y0 >= 9'd300) && (y1 <= 9'd430);
+    wire in_K = (x0 >= 10'd20 ) && (x1 <= 10'd620) && (y0 >= 9'd400) && (y1 <= 9'd470);
 
-    wire on_road = in_A | in_B | in_C | in_D | in_E | in_F | in_G;
+    wire on_road = in_A | in_B | in_C | in_D | in_E | in_F | in_G |
+                   in_H | in_I | in_J | in_K;
 
     assign collision_detected = ~on_road;
 
@@ -57,14 +59,14 @@ module collision_detector (
         (x0 >= 10'd55) && (x1 <= 10'd90) &&
         (y0 >= 9'd40 ) && (y1 <= 9'd100);
 
-    // STOP zone: top strip near center
+    // STOP zone: top strip near the right side, matching the visual marker
     assign in_stop_zone =
-        (x0 >= 10'd280) && (x1 <= 10'd360) &&
+        (x0 >= 10'd330) && (x1 <= 10'd420) &&
         (y0 >= 9'd40 ) && (y1 <= 9'd100);
 
     // PARKING/FINISH zone: bottom-left
     assign in_parking_zone =
         (x0 >= 10'd20 ) && (x1 <= 10'd120) &&
-        (y0 >= 9'd420) && (y1 <= 9'd470);
+        (y0 >= 9'd400) && (y1 <= 9'd470);
 
 endmodule
