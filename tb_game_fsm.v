@@ -5,6 +5,7 @@ module tb_game_fsm;
     reg clk = 0, rst = 1;
     reg SW_en = 0;
     reg collision_detected = 0;
+    reg cone_hit = 0;
     reg at_start_line = 0;
     reg in_stop_zone = 0, in_parking_zone = 0;
     reg [2:0] speed = 0;
@@ -16,6 +17,7 @@ module tb_game_fsm;
     game_fsm dut (
         .clk(clk), .rst(rst), .SW_en(SW_en),
         .collision_detected(collision_detected),
+        .cone_hit(cone_hit),
         .at_start_line(at_start_line),
         .in_stop_zone(in_stop_zone), .in_parking_zone(in_parking_zone),
         .speed(speed),
@@ -36,10 +38,11 @@ module tb_game_fsm;
         at_start_line = 1; #20; at_start_line = 0; #20;
         $display("State after SW_en = %0d (expect 1=PLAYING)", game_state);
 
-        // Collision
-        collision_detected = 1; #20; collision_detected = 0; #40;
-        $display("State after collision = %0d (expect 2=COLLIDED), lives=%0d (expect 2)",
-                 game_state, lives);
+        // Collision on cone: should enter COLLIDED and apply -5s time penalty
+        collision_detected = 1; cone_hit = 1; #20;
+        collision_detected = 0; cone_hit = 0; #40;
+        $display("After cone collision: state=%0d (expect 2), lives=%0d (expect 2), time=%0d (expect 55)",
+             game_state, lives, countdown_sec);
 
         // Wait for penalty to expire (60 ticks @ 20ns clk period -> 60*20=1200)
         #1400;

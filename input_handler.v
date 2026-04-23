@@ -3,8 +3,8 @@
 // Debounces the noisy mechanical inputs from the DE2 board.
 //   - KEY[0] (active-low) -> steer_right
 //   - KEY[1] (active-low) -> steer_left
-//   - SW[0]  (active-high) -> accel
-//   - SW[1]  (active-high) -> brake
+//   - KEY[2] (active-low) -> accel
+//   - SW[0]  (active-high) -> brake
 //
 // Strategy: for each input, require the signal to be stable for
 // DEBOUNCE_CYCLES consecutive clk edges before propagating the change.
@@ -29,8 +29,8 @@ module input_handler (
 
     wire want_r = ~KEY_raw[0];   // invert active-low KEY
     wire want_l = ~KEY_raw[1];
-    wire want_a =  SW_raw[0];
-    wire want_b =  SW_raw[1];
+    wire want_a = ~KEY_raw[2];
+    wire want_b =  SW_raw[0];
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin

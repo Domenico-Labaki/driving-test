@@ -40,10 +40,9 @@ module vehicle_controller (
 
     localparam [2:0] MAX_SPEED = 3'd7;
 
-    // --- Steering edge detectors so holding a KEY doesn't spin the car ---
-    reg steer_left_prev, steer_right_prev;
-    wire steer_l_edge = steer_left  & ~steer_left_prev;
-    wire steer_r_edge = steer_right & ~steer_right_prev;
+    // --- Steering hold counter for smooth rate-limited turning ---
+    localparam [2:0] TURN_TICKS = 3'd2; // heading step every 3 game ticks while held
+    reg [2:0] turn_cnt;
 
     // --- Throttle sub-dividers so speed doesn't saturate in one tick ---
     reg [4:0] throttle_cnt;
@@ -80,24 +79,22 @@ module vehicle_controller (
             veh_y            <= START_Y;
             speed            <= 3'd0;
             direction        <= DIR_RIGHT;
-            steer_left_prev  <= 1'b0;
-            steer_right_prev <= 1'b0;
+            turn_cnt         <= 3'd0;
             throttle_cnt     <= 5'd0;
             move_cnt         <= 3'd0;
         end
         else begin
-            steer_left_prev  <= steer_left;
-            steer_right_prev <= steer_right;
-
             if (!game_active) begin
                 if (speed == 0) begin
                     veh_x     <= START_X;
                     veh_y     <= START_Y;
                     direction <= DIR_RIGHT;
+                    turn_cnt  <= 3'd0;
                 end
             end
             else if (freeze) begin
                 speed <= 3'd0;
+                turn_cnt <= 3'd0;
             end
             else begin
                 // --- Speed update (every 25 clk_game ticks) ---
@@ -116,10 +113,24 @@ module vehicle_controller (
                     end
                 end
 
-                // --- Smooth steering: 45-degree steps on button edge ---
+                // --- Steering-based heading control while driving ---
                 if (speed != 0) begin
-                    if (steer_l_edge)      direction <= direction - 3'd1;
-                    else if (steer_r_edge) direction <= direction + 3'd1;
+                    if (steer_left ^ steer_right) begin
+                        if (turn_cnt == TURN_TICKS) begin
+                            turn_cnt <= 3'd0;
+                            if (steer_left) direction <= direction - 3'd1;
+                            else            direction <= direction + 3'd1;
+                        end
+                        else begin
+                            turn_cnt <= turn_cnt + 3'd1;
+                        end
+                    end
+                    else begin
+                        turn_cnt <= 3'd0;
+                    end
+                end
+                else begin
+                    turn_cnt <= 3'd0;
                 end
 
                 // --- Position update every 4 ticks ---

@@ -14,6 +14,7 @@ module game_fsm (
     input  wire       rst,                // active-high
     input  wire       SW_en,              // SW[17]
     input  wire       collision_detected,
+    input  wire       cone_hit,
     input  wire       at_start_line,
     input  wire       in_stop_zone,
     input  wire       in_parking_zone,
@@ -31,6 +32,7 @@ module game_fsm (
     localparam [2:0] S_AT_STOP  = 3'd3;
     localparam [2:0] S_PARKING  = 3'd4;
     localparam [2:0] S_DONE     = 3'd5;
+    localparam [2:0] S_GAME_OVER= 3'd6;
 
     // Parameters
     localparam integer PENALTY_TICKS = 60;    // ~1 s at 60 Hz
@@ -42,6 +44,7 @@ module game_fsm (
     reg [7:0]  stop_cnt;
     reg [5:0]  second_cnt;    // counts 60 game ticks to make 1 second
     reg        collision_prev;
+    reg        cone_prev;
     reg        at_start_prev;
     reg        timer_started;
 
@@ -55,11 +58,13 @@ module game_fsm (
             stop_cnt       <= 0;
             second_cnt     <= 0;
             collision_prev <= 0;
+            cone_prev      <= 0;
             at_start_prev  <= 0;
             timer_started  <= 1'b0;
         end
         else begin
             collision_prev <= collision_detected;
+            cone_prev      <= cone_hit;
             at_start_prev  <= at_start_line;
 
             // Timer starts only after the car first crosses the start line.
@@ -95,18 +100,15 @@ module game_fsm (
                     if (collision_detected && !collision_prev) begin
                         game_state  <= S_COLLIDED;
                         penalty_cnt <= 0;
+                        if (cone_hit && !cone_prev && timer_started) begin
+                            if (countdown_sec > 6'd5) countdown_sec <= countdown_sec - 6'd5;
+                            else                      countdown_sec <= 6'd0;
+                        end
                         if (lives != 0) lives <= lives - 1;
                     end
                     else if (countdown_sec == 0) begin
-                        if (lives <= 3'd1) begin
-                            if (lives != 0) lives <= lives - 1;
-                            pass       <= 1'b0;
-                            game_state <= S_DONE;
-                        end
-                        else begin
-                            lives         <= lives - 1;
-                            countdown_sec <= 6'd60;
-                        end
+                        pass       <= 1'b0;
+                        game_state <= S_GAME_OVER;
                     end
                     else if (in_stop_zone) begin
                         game_state <= S_AT_STOP;
@@ -118,7 +120,11 @@ module game_fsm (
                 end
 
                 S_COLLIDED: begin
-                    if (lives == 0) begin
+                    if (countdown_sec == 0) begin
+                        pass       <= 1'b0;
+                        game_state <= S_GAME_OVER;
+                    end
+                    else if (lives == 0) begin
                         pass       <= 1'b0;
                         game_state <= S_DONE;
                     end
@@ -133,7 +139,15 @@ module game_fsm (
                     if (collision_detected && !collision_prev) begin
                         game_state  <= S_COLLIDED;
                         penalty_cnt <= 0;
+                        if (cone_hit && !cone_prev && timer_started) begin
+                            if (countdown_sec > 6'd5) countdown_sec <= countdown_sec - 6'd5;
+                            else                      countdown_sec <= 6'd0;
+                        end
                         if (lives != 0) lives <= lives - 1;
+                    end
+                    else if (countdown_sec == 0) begin
+                        pass       <= 1'b0;
+                        game_state <= S_GAME_OVER;
                     end
                     else if (speed == 3'd0) begin
                         if (stop_cnt == STOP_HOLD) game_state <= S_PLAYING;
@@ -150,7 +164,11 @@ module game_fsm (
 
                 S_PARKING: begin
                     // Vehicle parked successfully: must be stopped inside the zone
-                    if (speed == 3'd0 && in_parking_zone) begin
+                    if (countdown_sec == 0) begin
+                        pass       <= 1'b0;
+                        game_state <= S_GAME_OVER;
+                    end
+                    else if (speed == 3'd0 && in_parking_zone) begin
                         pass       <= 1'b1;
                         game_state <= S_DONE;
                     end
@@ -162,6 +180,10 @@ module game_fsm (
 
                 S_DONE: begin
                     // Held in DONE until external reset (KEY[3])
+                end
+
+                S_GAME_OVER: begin
+                    // Held in GAME_OVER until external reset (KEY[3])
                 end
 
                 default: game_state <= S_IDLE;

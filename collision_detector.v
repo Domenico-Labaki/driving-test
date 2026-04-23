@@ -25,6 +25,7 @@ module collision_detector (
     input  wire [9:0] veh_x,
     input  wire [8:0] veh_y,
     output wire       collision_detected,
+    output wire       cone_hit,
     output wire       at_start_line,
     output wire       in_stop_zone,
     output wire       in_parking_zone
@@ -69,6 +70,7 @@ module collision_detector (
     wire on_cone = hit_c1 | hit_c2 | hit_c3 | hit_c4 | hit_c5 |
                    hit_c6 | hit_c7 | hit_c8 | hit_c9 | hit_c10;
 
+    assign cone_hit = on_cone;
     assign collision_detected = (~on_road) | on_cone;
 
     // Start line: thin strip near the initial car position in segment A

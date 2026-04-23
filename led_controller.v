@@ -21,6 +21,7 @@ module led_controller (
 
     localparam [2:0] S_COLLIDED = 3'd2;
     localparam [2:0] S_DONE     = 3'd5;
+    localparam [2:0] S_GAME_OVER= 3'd6;
 
     // Blink counter for flashing during COLLIDED
     reg [4:0] blink_cnt;
@@ -31,19 +32,17 @@ module led_controller (
     wire blink = blink_cnt[4];  // ~2 Hz at 60 Hz game clock
 
     // Thermometer-code the speed bar
+    wire [6:0] speed_kmh = {4'd0, speed} * 7'd10;  // 00,10,...,70
     reg [6:0] speed_bar;
     always @(*) begin
-        case (speed)
-            3'd0: speed_bar = 7'b0000000;
-            3'd1: speed_bar = 7'b0000001;
-            3'd2: speed_bar = 7'b0000011;
-            3'd3: speed_bar = 7'b0000111;
-            3'd4: speed_bar = 7'b0001111;
-            3'd5: speed_bar = 7'b0011111;
-            3'd6: speed_bar = 7'b0111111;
-            3'd7: speed_bar = 7'b1111111;
-            default: speed_bar = 7'b0000000;
-        endcase
+        if (speed_kmh == 0)         speed_bar = 7'b0000000;
+        else if (speed_kmh <= 10)   speed_bar = 7'b0000001;
+        else if (speed_kmh <= 20)   speed_bar = 7'b0000011;
+        else if (speed_kmh <= 30)   speed_bar = 7'b0000111;
+        else if (speed_kmh <= 40)   speed_bar = 7'b0001111;
+        else if (speed_kmh <= 50)   speed_bar = 7'b0011111;
+        else if (speed_kmh <= 60)   speed_bar = 7'b0111111;
+        else                        speed_bar = 7'b1111111;
     end
 
     always @(*) begin
@@ -52,6 +51,7 @@ module led_controller (
 
         // Red indicators
         if (game_state == S_COLLIDED) LEDR = blink ? 18'h3FFFF : 18'h0;
+        else if (game_state == S_GAME_OVER) LEDR = 18'h3FFFF;
         else if (collision_detected)  LEDR = 18'h3FFFF;
         else if (in_stop_zone)        LEDR = 18'h00FF0;   // center band while at STOP
 

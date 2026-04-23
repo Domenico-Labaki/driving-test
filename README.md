@@ -33,8 +33,8 @@ A full Verilog implementation of a driving-test game for the Altera DE2 board
 | `SW[17]`    | Start the driving test (IDLE → PLAYING)           |
 | `KEY[0]`    | Steer left                                        |
 | `KEY[1]`    | Steer right                                       |
-| `SW[0]`     | Accelerate                                        |
-| `SW[1]`     | Brake                                             |
+| `KEY[2]`    | Accelerate (gas)                                  |
+| `SW[0]`     | Brake                                             |
 | `KEY[3]`    | Reset (active-low, synchronised internally)       |
 
 ### Objective
@@ -45,6 +45,9 @@ complete halt inside the PARK zone** (yellow tint, bottom-left) to pass.
 - 3 lives — each collision costs one.
 - Red LEDs flash during the collision penalty, including cone hits.
 - Green LEDs show a speed thermometer and light up fully on PASS.
+- Speed on HEX is shown as a km/h-style value (00..70).
+- Timer reaching 00 ends the run immediately in GAME OVER.
+- Hitting a cone applies an extra -5 second time penalty.
 - LCD displays a message for each game state.
 - Audio tones: 220 Hz on collision, 880 Hz on PASS, 440 Hz while in STOP/PARK zones.
 

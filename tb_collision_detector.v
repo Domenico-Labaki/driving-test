@@ -4,11 +4,12 @@
 module tb_collision_detector;
     reg [9:0] veh_x = 60;
     reg [8:0] veh_y = 60;
-    wire collision_detected, at_start_line, in_stop_zone, in_parking_zone;
+    wire collision_detected, cone_hit, at_start_line, in_stop_zone, in_parking_zone;
 
     collision_detector dut (
         .veh_x(veh_x), .veh_y(veh_y),
         .collision_detected(collision_detected),
+        .cone_hit(cone_hit),
         .at_start_line(at_start_line),
         .in_stop_zone(in_stop_zone), .in_parking_zone(in_parking_zone)
     );
@@ -29,7 +30,7 @@ module tb_collision_detector;
 
         // Cone marker on the road (should now count as a collision hazard)
         veh_x = 250; veh_y = 150; #10;
-        $display("Cone (250,150): collision=%b (expect 1)", collision_detected);
+        $display("Cone (250,150): collision=%b cone_hit=%b (expect 1,1)", collision_detected, cone_hit);
 
         // Park zone
         veh_x = 40; veh_y = 420; #10;

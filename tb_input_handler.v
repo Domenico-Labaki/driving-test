@@ -31,9 +31,13 @@ module tb_input_handler;
         repeat (10) @(posedge clk);
         $display("steer_left after release = %b (expect 0)", steer_left);
 
-        // Switch-driven inputs
+        // KEY2-driven accel (active-low)
+        KEY_raw[2] = 0; repeat (10) @(posedge clk);
+        $display("accel after KEY[2] press = %b (expect 1)", accel);
+
+        // SW0-driven brake (active-high)
         SW_raw[0] = 1; repeat (10) @(posedge clk);
-        $display("accel after SW[0]=1 = %b (expect 1)", accel);
+        $display("brake after SW[0]=1 = %b (expect 1)", brake);
 
         $stop;
     end

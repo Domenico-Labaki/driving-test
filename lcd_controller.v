@@ -37,6 +37,7 @@ module lcd_controller (
     localparam [2:0] S_AT_STOP  = 3'd3;
     localparam [2:0] S_PARKING  = 3'd4;
     localparam [2:0] S_DONE     = 3'd5;
+    localparam [2:0] S_GAME_OVER= 3'd6;
 
     // --- Timing constants @ 50 MHz ---
     localparam integer T_15MS   = 32'd750_000;  // 15 ms power-on wait
@@ -135,6 +136,10 @@ module lcd_controller (
                 end
                 S_DONE: begin
                     row0 = " *** PASS ***   ";
+                    row1 = " Press KEY3 rst ";
+                end
+                S_GAME_OVER: begin
+                    row0 = " *** GAMEOVER **";
                     row1 = " Press KEY3 rst ";
                 end
                 default: begin

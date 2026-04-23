@@ -44,12 +44,14 @@ module tb_vehicle_controller;
         $display("Direction after steer at speed=0: %0d (expect unchanged=2)", direction);
         steer_right = 0;
 
-        // Accel then steer
+        // Accel then steer (held input changes heading over time)
         accel = 1;
         repeat (50) @(posedge clk_game);
-        steer_right = 1; @(posedge clk_game); steer_right = 0;
+        steer_right = 1;
+        repeat (12) @(posedge clk_game);
+        steer_right = 0;
         repeat (5) @(posedge clk_game);
-        $display("Direction after steer right at speed>0: %0d (expect 3=DOWN-RIGHT)", direction);
+        $display("Direction after held steer right at speed>0: %0d (expect !=2)", direction);
 
         $stop;
     end

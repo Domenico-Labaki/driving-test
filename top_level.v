@@ -69,6 +69,7 @@ module top_level (
     wire [2:0]  speed;
     wire [2:0]  direction;
     wire        collision_detected;
+    wire        cone_hit;
     wire        at_start_line;
     wire        in_stop_zone;
     wire        in_parking_zone;
@@ -140,6 +141,7 @@ module top_level (
         .rst                (rst),
         .SW_en              (SW[17]),
         .collision_detected (collision_detected),
+        .cone_hit           (cone_hit),
         .at_start_line      (at_start_line),
         .in_stop_zone       (in_stop_zone),
         .in_parking_zone    (in_parking_zone),
@@ -169,6 +171,7 @@ module top_level (
         .veh_x              (veh_x),
         .veh_y              (veh_y),
         .collision_detected (collision_detected),
+        .cone_hit           (cone_hit),
         .at_start_line      (at_start_line),
         .in_stop_zone       (in_stop_zone),
         .in_parking_zone    (in_parking_zone)

@@ -190,6 +190,9 @@ module vga_controller (
             if (game_state == 3'd2) begin                // S_COLLIDED: red
                 VGA_R = 4'hF; VGA_G = 4'h0; VGA_B = 4'h0;
             end
+            else if (game_state == 3'd6) begin           // S_GAME_OVER: red
+                VGA_R = 4'hF; VGA_G = 4'h0; VGA_B = 4'h0;
+            end
             else if (game_state == 3'd5) begin           // S_DONE: yellow
                 VGA_R = 4'hF; VGA_G = 4'hF; VGA_B = 4'h0;
             end
