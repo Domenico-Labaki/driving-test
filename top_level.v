@@ -67,7 +67,7 @@ module top_level (
     wire [9:0]  veh_x;
     wire [8:0]  veh_y;
     wire [2:0]  speed;
-    wire [1:0]  direction;
+    wire [2:0]  direction;
     wire        collision_detected;
     wire        at_start_line;
     wire        in_stop_zone;

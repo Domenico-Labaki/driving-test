@@ -14,7 +14,7 @@ module vga_controller (
     input  wire       rst,
     input  wire [9:0] veh_x,
     input  wire [8:0] veh_y,
-    input  wire [1:0] direction,
+    input  wire [2:0] direction,
     input  wire [2:0] game_state,
     output reg        VGA_HS,
     output reg        VGA_VS,
@@ -127,16 +127,25 @@ module vga_controller (
     wire in_car = (px >= veh_x) && (px < veh_x + 10'd20) &&
                   (py >= {1'b0, veh_y}) && (py < {1'b0, veh_y} + 10'd12);
 
-    // "Nose" = small 4x4 region at the front of the car (depends on facing)
-    wire in_nose_up    = (direction == 2'd0) && (px >= veh_x + 10'd8 ) && (px < veh_x + 10'd12) &&
-                         (py >= {1'b0,veh_y}) && (py < {1'b0,veh_y} + 10'd3);
-    wire in_nose_right = (direction == 2'd1) && (px >= veh_x + 10'd17) && (px < veh_x + 10'd20) &&
-                         (py >= {1'b0,veh_y} + 10'd4) && (py < {1'b0,veh_y} + 10'd8);
-    wire in_nose_down  = (direction == 2'd2) && (px >= veh_x + 10'd8 ) && (px < veh_x + 10'd12) &&
-                         (py >= {1'b0,veh_y} + 10'd9) && (py < {1'b0,veh_y} + 10'd12);
-    wire in_nose_left  = (direction == 2'd3) && (px >= veh_x)           && (px < veh_x + 10'd3) &&
-                         (py >= {1'b0,veh_y} + 10'd4) && (py < {1'b0,veh_y} + 10'd8);
-    wire in_nose = in_nose_up | in_nose_right | in_nose_down | in_nose_left;
+    // "Nose" = small region at the front of the car (depends on 8-way heading)
+    wire in_nose_up         = (direction == 3'd0) && (px >= veh_x + 10'd8 ) && (px < veh_x + 10'd12) &&
+                              (py >= {1'b0,veh_y}) && (py < {1'b0,veh_y} + 10'd3);
+    wire in_nose_up_right   = (direction == 3'd1) && (px >= veh_x + 10'd17) && (px < veh_x + 10'd20) &&
+                              (py >= {1'b0,veh_y}) && (py < {1'b0,veh_y} + 10'd3);
+    wire in_nose_right      = (direction == 3'd2) && (px >= veh_x + 10'd17) && (px < veh_x + 10'd20) &&
+                              (py >= {1'b0,veh_y} + 10'd4) && (py < {1'b0,veh_y} + 10'd8);
+    wire in_nose_down_right = (direction == 3'd3) && (px >= veh_x + 10'd17) && (px < veh_x + 10'd20) &&
+                              (py >= {1'b0,veh_y} + 10'd9) && (py < {1'b0,veh_y} + 10'd12);
+    wire in_nose_down       = (direction == 3'd4) && (px >= veh_x + 10'd8 ) && (px < veh_x + 10'd12) &&
+                              (py >= {1'b0,veh_y} + 10'd9) && (py < {1'b0,veh_y} + 10'd12);
+    wire in_nose_down_left  = (direction == 3'd5) && (px >= veh_x) && (px < veh_x + 10'd3) &&
+                              (py >= {1'b0,veh_y} + 10'd9) && (py < {1'b0,veh_y} + 10'd12);
+    wire in_nose_left       = (direction == 3'd6) && (px >= veh_x) && (px < veh_x + 10'd3) &&
+                              (py >= {1'b0,veh_y} + 10'd4) && (py < {1'b0,veh_y} + 10'd8);
+    wire in_nose_up_left    = (direction == 3'd7) && (px >= veh_x) && (px < veh_x + 10'd3) &&
+                              (py >= {1'b0,veh_y}) && (py < {1'b0,veh_y} + 10'd3);
+    wire in_nose = in_nose_up | in_nose_up_right | in_nose_right | in_nose_down_right |
+                   in_nose_down | in_nose_down_left | in_nose_left | in_nose_up_left;
 
     // --- Cone markers: small 6x6 squares at key boundary points ---
     function cone_at;
