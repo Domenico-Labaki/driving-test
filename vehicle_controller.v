@@ -41,7 +41,7 @@ module vehicle_controller (
     localparam [2:0] MAX_SPEED = 3'd7;
 
     // --- Steering hold counter for smooth rate-limited turning ---
-    localparam [2:0] TURN_TICKS = 3'd2; // heading step every 3 game ticks while held
+    localparam [2:0] TURN_TICKS = 3'd7; // heading step every 7 game ticks while held
     reg [2:0] turn_cnt;
 
     // --- Throttle sub-dividers so speed doesn't saturate in one tick ---
