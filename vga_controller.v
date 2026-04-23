@@ -88,6 +88,11 @@ module vga_controller (
     wire in_stop_px = (px >= 280) && (px < 360) && (py >= 40) && (py < 100);
     wire in_park_px = (px >= 20 ) && (px < 120) && (py >= 420) && (py < 470);
 
+    // Start / finish markings
+    wire start_line  = (px >= 10'd75) && (px < 10'd80) &&
+                       (py >= 10'd40) && (py < 10'd100);
+    wire finish_line = in_park_px && (px[3] ^ py[3]);
+
     // --- Car sprite (20x12 rectangle) with direction indicator ---
     wire in_car = (px >= veh_x) && (px < veh_x + 10'd20) &&
                   (py >= {1'b0, veh_y}) && (py < {1'b0, veh_y} + 10'd12);
@@ -153,6 +158,9 @@ module vga_controller (
             else begin                                   // normal: blue
                 VGA_R = 4'h1; VGA_G = 4'h3; VGA_B = 4'hF;
             end
+        end
+        else if (start_line || finish_line) begin
+            VGA_R = 4'hF; VGA_G = 4'hF; VGA_B = 4'hF;  // white line markings
         end
         else if (dash_A || dash_G) begin
             VGA_R = 4'hF; VGA_G = 4'hF; VGA_B = 4'hF;  // white dashes

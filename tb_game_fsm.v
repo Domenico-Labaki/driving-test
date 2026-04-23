@@ -5,20 +5,22 @@ module tb_game_fsm;
     reg clk = 0, rst = 1;
     reg SW_en = 0;
     reg collision_detected = 0;
+    reg at_start_line = 0;
     reg in_stop_zone = 0, in_parking_zone = 0;
     reg [2:0] speed = 0;
     wire [2:0] game_state;
     wire pass;
     wire [2:0] lives;
-    wire [15:0] elapsed_sec;
+    wire [5:0] countdown_sec;
 
     game_fsm dut (
         .clk(clk), .rst(rst), .SW_en(SW_en),
         .collision_detected(collision_detected),
+        .at_start_line(at_start_line),
         .in_stop_zone(in_stop_zone), .in_parking_zone(in_parking_zone),
         .speed(speed),
         .game_state(game_state), .pass(pass),
-        .lives(lives), .elapsed_sec(elapsed_sec)
+        .lives(lives), .countdown_sec(countdown_sec)
     );
 
     always #10 clk = ~clk;
@@ -31,6 +33,7 @@ module tb_game_fsm;
 
         // Start game
         SW_en = 1; #40;
+        at_start_line = 1; #20; at_start_line = 0; #20;
         $display("State after SW_en = %0d (expect 1=PLAYING)", game_state);
 
         // Collision

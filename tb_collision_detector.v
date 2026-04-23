@@ -4,18 +4,19 @@
 module tb_collision_detector;
     reg [9:0] veh_x = 60;
     reg [8:0] veh_y = 60;
-    wire collision_detected, in_stop_zone, in_parking_zone;
+    wire collision_detected, at_start_line, in_stop_zone, in_parking_zone;
 
     collision_detector dut (
         .veh_x(veh_x), .veh_y(veh_y),
         .collision_detected(collision_detected),
+        .at_start_line(at_start_line),
         .in_stop_zone(in_stop_zone), .in_parking_zone(in_parking_zone)
     );
 
     initial begin
         $display("tb_collision_detector: start");
-        #10 $display("Start pos (60,60): collision=%b stop=%b park=%b (expect 0,0,0)",
-                     collision_detected, in_stop_zone, in_parking_zone);
+        #10 $display("Start pos (60,60): collision=%b start=%b stop=%b park=%b (expect 0,1,0,0)",
+                 collision_detected, at_start_line, in_stop_zone, in_parking_zone);
 
         // Off-grass
         veh_x = 10; veh_y = 10; #10;

@@ -69,12 +69,13 @@ module top_level (
     wire [2:0]  speed;
     wire [1:0]  direction;
     wire        collision_detected;
+    wire        at_start_line;
     wire        in_stop_zone;
     wire        in_parking_zone;
     wire [2:0]  game_state;
     wire        pass;
     wire [2:0]  lives;
-    wire [15:0] elapsed_sec;
+    wire [5:0]  countdown_sec;
 
     // Collision rising-edge pulse (1 tick of clk_game)
     reg col_prev_r;
@@ -139,13 +140,14 @@ module top_level (
         .rst                (rst),
         .SW_en              (SW[17]),
         .collision_detected (collision_detected),
+        .at_start_line      (at_start_line),
         .in_stop_zone       (in_stop_zone),
         .in_parking_zone    (in_parking_zone),
         .speed              (speed),
         .game_state         (game_state),
         .pass               (pass),
         .lives              (lives),
-        .elapsed_sec        (elapsed_sec)
+        .countdown_sec      (countdown_sec)
     );
 
     vehicle_controller u_veh (
@@ -167,6 +169,7 @@ module top_level (
         .veh_x              (veh_x),
         .veh_y              (veh_y),
         .collision_detected (collision_detected),
+        .at_start_line      (at_start_line),
         .in_stop_zone       (in_stop_zone),
         .in_parking_zone    (in_parking_zone)
     );
@@ -189,7 +192,7 @@ module top_level (
         .clk         (clk_game),
         .rst         (rst),
         .speed       (speed),
-        .elapsed_sec (elapsed_sec),
+        .countdown_sec (countdown_sec),
         .HEX0        (HEX0),
         .HEX1        (HEX1),
         .HEX2        (HEX2),

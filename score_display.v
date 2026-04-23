@@ -2,13 +2,13 @@
 // score_display.v
 // Drives HEX0..HEX5 on the DE2 board (active-low segments).
 //   HEX1 HEX0 = speed   (tens, units)
-//   HEX5 HEX4 HEX3 HEX2 = MM MM SS SS  (elapsed minutes:seconds)
+//   HEX5 HEX4 = countdown units/tens (00..60)
 // ============================================================================
 module score_display (
     input  wire        clk,
     input  wire        rst,
     input  wire [2:0]  speed,
-    input  wire [15:0] elapsed_sec,
+    input  wire [5:0]  countdown_sec,
     output reg  [6:0]  HEX0,
     output reg  [6:0]  HEX1,
     output reg  [6:0]  HEX2,
@@ -37,18 +37,8 @@ module score_display (
         end
     endfunction
 
-    // Elapsed time split
-    wire [15:0] total = elapsed_sec;
-    // Modulo/divide synthesize to small combinational logic for 16-bit values.
-    // Cap minutes at 99 to fit two digits.
-    wire [15:0] total_capped = (total > 16'd5999) ? 16'd5999 : total;
-    wire [15:0] minutes = total_capped / 16'd60;
-    wire [15:0] seconds = total_capped - (minutes * 16'd60);
-
-    wire [3:0] min_tens  = minutes[7:0] / 8'd10;
-    wire [3:0] min_units = minutes[7:0] - (min_tens * 4'd10);
-    wire [3:0] sec_tens  = seconds[7:0] / 8'd10;
-    wire [3:0] sec_units = seconds[7:0] - (sec_tens * 4'd10);
+    wire [3:0] cd_tens  = countdown_sec / 6'd10;
+    wire [3:0] cd_units = countdown_sec - (cd_tens * 4'd10);
 
     // Speed digits (speed is 0..7 so tens = 0)
     wire [3:0] spd_tens  = 4'd0;
@@ -61,12 +51,12 @@ module score_display (
             HEX4 <= 7'b1111111; HEX5 <= 7'b1111111;
         end
         else begin
-            HEX0 <= seg7(spd_units);
-            HEX1 <= seg7(spd_tens);
-            HEX2 <= seg7(sec_units);
-            HEX3 <= seg7(sec_tens);
-            HEX4 <= seg7(min_units);
-            HEX5 <= seg7(min_tens);
+            HEX0 <= seg7({1'b0, speed});  // units
+            HEX1 <= seg7(4'd0);           // tens  (always 0, speed max=7)
+            HEX2 <= seg7(4'd0);           // hundreds (always 0)
+            HEX3 <= seg7(4'd0);
+            HEX4 <= seg7(cd_tens);
+            HEX5 <= seg7(cd_units);
         end
     end
 

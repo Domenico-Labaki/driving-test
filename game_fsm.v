@@ -14,13 +14,14 @@ module game_fsm (
     input  wire       rst,                // active-high
     input  wire       SW_en,              // SW[17]
     input  wire       collision_detected,
+    input  wire       at_start_line,
     input  wire       in_stop_zone,
     input  wire       in_parking_zone,
     input  wire [2:0] speed,              // from vehicle_controller
     output reg  [2:0] game_state,
     output reg        pass,
     output reg  [2:0] lives,
-    output reg [15:0] elapsed_sec
+    output reg [5:0] countdown_sec
 );
 
     // --- State encoding ---
@@ -41,26 +42,38 @@ module game_fsm (
     reg [7:0]  stop_cnt;
     reg [5:0]  second_cnt;    // counts 60 game ticks to make 1 second
     reg        collision_prev;
+    reg        at_start_prev;
+    reg        timer_started;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             game_state     <= S_IDLE;
             pass           <= 1'b0;
             lives          <= LIVES_INIT;
-            elapsed_sec    <= 16'd0;
+            countdown_sec  <= 6'd60;
             penalty_cnt    <= 0;
             stop_cnt       <= 0;
             second_cnt     <= 0;
             collision_prev <= 0;
+            at_start_prev  <= 0;
+            timer_started  <= 1'b0;
         end
         else begin
             collision_prev <= collision_detected;
+            at_start_prev  <= at_start_line;
+
+            // Timer starts only after the car first crosses the start line.
+            if ((game_state == S_PLAYING || game_state == S_AT_STOP) &&
+                !timer_started && (at_start_line != at_start_prev)) begin
+                timer_started <= 1'b1;
+            end
 
             // --- Seconds counter runs only while playing ---
-            if (game_state == S_PLAYING || game_state == S_AT_STOP) begin
+            if ((game_state == S_PLAYING || game_state == S_AT_STOP) && timer_started) begin
                 if (second_cnt == 6'd59) begin
-                    second_cnt  <= 0;
-                    elapsed_sec <= elapsed_sec + 16'd1;
+                    second_cnt <= 0;
+                    if (countdown_sec != 0)
+                        countdown_sec <= countdown_sec - 6'd1;
                 end
                 else second_cnt <= second_cnt + 1;
             end
@@ -70,8 +83,10 @@ module game_fsm (
                 S_IDLE: begin
                     pass        <= 1'b0;
                     lives       <= LIVES_INIT;
-                    elapsed_sec <= 16'd0;
+                    countdown_sec <= 6'd60;
                     second_cnt  <= 0;
+                    timer_started <= 1'b0;
+                    at_start_prev <= at_start_line;
                     if (SW_en) game_state <= S_PLAYING;
                 end
 
@@ -81,6 +96,17 @@ module game_fsm (
                         game_state  <= S_COLLIDED;
                         penalty_cnt <= 0;
                         if (lives != 0) lives <= lives - 1;
+                    end
+                    else if (countdown_sec == 0) begin
+                        if (lives <= 3'd1) begin
+                            if (lives != 0) lives <= lives - 1;
+                            pass       <= 1'b0;
+                            game_state <= S_DONE;
+                        end
+                        else begin
+                            lives         <= lives - 1;
+                            countdown_sec <= 6'd60;
+                        end
                     end
                     else if (in_stop_zone) begin
                         game_state <= S_AT_STOP;
