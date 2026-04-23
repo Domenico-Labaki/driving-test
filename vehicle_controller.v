@@ -35,7 +35,9 @@ module vehicle_controller (
     wire steer_r_edge = steer_right & ~steer_right_prev;
 
     // --- Throttle sub-dividers so speed doesn't saturate in one tick ---
-    reg [3:0] throttle_cnt;
+    reg [4:0] throttle_cnt;
+
+    reg [2:0] move_cnt;
 
     always @(posedge clk_game or posedge rst) begin
         if (rst) begin
@@ -45,7 +47,8 @@ module vehicle_controller (
             direction        <= DIR_RIGHT;
             steer_left_prev  <= 1'b0;
             steer_right_prev <= 1'b0;
-            throttle_cnt     <= 4'd0;
+            throttle_cnt     <= 5'd0;
+            move_cnt         <= 3'd0;
         end
         else begin
             steer_left_prev  <= steer_left;
@@ -67,7 +70,7 @@ module vehicle_controller (
             else begin
                 // --- Speed update (every 8 ticks ~= 7.5 Hz adjustments) ---
                 throttle_cnt <= throttle_cnt + 1;
-                if (throttle_cnt == 4'd7) begin
+                if (throttle_cnt == 5'd24) begin
                     throttle_cnt <= 0;
                     if (brake) begin
                         if (speed != 0) speed <= speed - 1;
@@ -84,19 +87,23 @@ module vehicle_controller (
                     else if (steer_r_edge) direction <= direction + 2'd1; // turn right (CW)
                 end
 
-                // --- Position update ---
-                case (direction)
-                    DIR_UP:    if (veh_y > speed)           veh_y <= veh_y - {6'd0, speed};
-                               else                         veh_y <= 9'd0;
-                    DIR_DOWN:  if (veh_y + speed < 9'd480-12)
-                                                            veh_y <= veh_y + {6'd0, speed};
-                               else                         veh_y <= 9'd480-12;
-                    DIR_RIGHT: if (veh_x + speed < 10'd640-20)
-                                                            veh_x <= veh_x + {7'd0, speed};
-                               else                         veh_x <= 10'd640-20;
-                    DIR_LEFT:  if (veh_x > speed)           veh_x <= veh_x - {7'd0, speed};
-                               else                         veh_x <= 10'd0;
-                endcase
+                // --- Position update every 4 ticks (~15 Hz) ---
+                move_cnt <= move_cnt + 1;
+                if (move_cnt == 3'd3) begin
+                    move_cnt <= 3'd0;
+                    case (direction)
+                        DIR_UP:    if (veh_y > speed)           veh_y <= veh_y - {6'd0, speed};
+                                   else                         veh_y <= 9'd0;
+                        DIR_DOWN:  if (veh_y + speed < 9'd480-12)
+                                                                veh_y <= veh_y + {6'd0, speed};
+                                   else                         veh_y <= 9'd480-12;
+                        DIR_RIGHT: if (veh_x + speed < 10'd640-20)
+                                                                veh_x <= veh_x + {7'd0, speed};
+                                   else                         veh_x <= 10'd640-20;
+                        DIR_LEFT:  if (veh_x > speed)           veh_x <= veh_x - {7'd0, speed};
+                                   else                         veh_x <= 10'd0;
+                    endcase
+                end
             end
         end
     end
