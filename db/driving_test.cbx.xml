@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<LOG_ROOT>
+	<PROJECT NAME="driving_test">
+		<CBX_INST_ENTRY INSTANCE_NAME="|top_level|score_display:u_seg|lpm_divide:Div0" CBX_FILE_NAME="lpm_divide_iem.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|top_level|score_display:u_seg|lpm_divide:Div1" CBX_FILE_NAME="lpm_divide_1dm.tdf"/>
+		<CBX_INST_ENTRY INSTANCE_NAME="|top_level|score_display:u_seg|lpm_divide:Div2" CBX_FILE_NAME="lpm_divide_1dm.tdf"/>
+	</PROJECT>
+</LOG_ROOT>

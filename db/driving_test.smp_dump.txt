@@ -1,0 +1,29 @@
+
+State Machine - |top_level|audio_controller:u_aud|istate
+Name istate.I_DONE istate.I_NEXT istate.I_STOP2 istate.I_STOP1 istate.I_ACK istate.I_BYTE istate.I_START istate.I_IDLE istate.I_WAIT 
+istate.I_IDLE 0 0 0 0 0 0 0 0 0 
+istate.I_START 0 0 0 0 0 0 1 1 0 
+istate.I_BYTE 0 0 0 0 0 1 0 1 0 
+istate.I_ACK 0 0 0 0 1 0 0 1 0 
+istate.I_STOP1 0 0 0 1 0 0 0 1 0 
+istate.I_STOP2 0 0 1 0 0 0 0 1 0 
+istate.I_NEXT 0 1 0 0 0 0 0 1 0 
+istate.I_DONE 1 0 0 0 0 0 0 1 0 
+istate.I_WAIT 0 0 0 0 0 0 0 1 1 
+
+State Machine - |top_level|lcd_controller:u_lcd|dstate
+Name dstate.D_HOLD dstate.D_MSG_NEXT dstate.D_MSG_WAIT dstate.D_MSG_ENLO dstate.D_MSG_ENHI dstate.D_MSG_RS dstate.D_MSG_LOAD dstate.D_INIT_NEXT dstate.D_INIT_WAIT dstate.D_INIT_ENLO dstate.D_INIT_ENHI dstate.D_INIT_RS dstate.D_INIT_LOAD dstate.D_POWER_WAIT 
+dstate.D_POWER_WAIT 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+dstate.D_INIT_LOAD 0 0 0 0 0 0 0 0 0 0 0 0 1 1 
+dstate.D_INIT_RS 0 0 0 0 0 0 0 0 0 0 0 1 0 1 
+dstate.D_INIT_ENHI 0 0 0 0 0 0 0 0 0 0 1 0 0 1 
+dstate.D_INIT_ENLO 0 0 0 0 0 0 0 0 0 1 0 0 0 1 
+dstate.D_INIT_WAIT 0 0 0 0 0 0 0 0 1 0 0 0 0 1 
+dstate.D_INIT_NEXT 0 0 0 0 0 0 0 1 0 0 0 0 0 1 
+dstate.D_MSG_LOAD 0 0 0 0 0 0 1 0 0 0 0 0 0 1 
+dstate.D_MSG_RS 0 0 0 0 0 1 0 0 0 0 0 0 0 1 
+dstate.D_MSG_ENHI 0 0 0 0 1 0 0 0 0 0 0 0 0 1 
+dstate.D_MSG_ENLO 0 0 0 1 0 0 0 0 0 0 0 0 0 1 
+dstate.D_MSG_WAIT 0 0 1 0 0 0 0 0 0 0 0 0 0 1 
+dstate.D_MSG_NEXT 0 1 0 0 0 0 0 0 0 0 0 0 0 1 
+dstate.D_HOLD 1 0 0 0 0 0 0 0 0 0 0 0 0 1 

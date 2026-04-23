@@ -1,0 +1,85 @@
+------------------------------------------------------------
+TimeQuest Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow Model Setup 'CLOCK_50'
+Slack : 12.296
+TNS   : 0.000
+
+Type  : Slow Model Setup 'u_clk|u_pll|pll|clk[0]'
+Slack : 36.329
+TNS   : 0.000
+
+Type  : Slow Model Hold 'CLOCK_50'
+Slack : 0.391
+TNS   : 0.000
+
+Type  : Slow Model Hold 'u_clk|u_pll|pll|clk[0]'
+Slack : 0.813
+TNS   : 0.000
+
+Type  : Slow Model Recovery 'u_clk|u_pll|pll|clk[0]'
+Slack : 14.728
+TNS   : 0.000
+
+Type  : Slow Model Recovery 'CLOCK_50'
+Slack : 16.288
+TNS   : 0.000
+
+Type  : Slow Model Removal 'CLOCK_50'
+Slack : 2.656
+TNS   : 0.000
+
+Type  : Slow Model Removal 'u_clk|u_pll|pll|clk[0]'
+Slack : 5.042
+TNS   : 0.000
+
+Type  : Slow Model Minimum Pulse Width 'CLOCK_50'
+Slack : 9.000
+TNS   : 0.000
+
+Type  : Slow Model Minimum Pulse Width 'u_clk|u_pll|pll|clk[0]'
+Slack : 19.000
+TNS   : 0.000
+
+Type  : Fast Model Setup 'CLOCK_50'
+Slack : 16.500
+TNS   : 0.000
+
+Type  : Fast Model Setup 'u_clk|u_pll|pll|clk[0]'
+Slack : 38.266
+TNS   : 0.000
+
+Type  : Fast Model Hold 'CLOCK_50'
+Slack : 0.215
+TNS   : 0.000
+
+Type  : Fast Model Hold 'u_clk|u_pll|pll|clk[0]'
+Slack : 0.364
+TNS   : 0.000
+
+Type  : Fast Model Recovery 'u_clk|u_pll|pll|clk[0]'
+Slack : 16.679
+TNS   : 0.000
+
+Type  : Fast Model Recovery 'CLOCK_50'
+Slack : 17.663
+TNS   : 0.000
+
+Type  : Fast Model Removal 'CLOCK_50'
+Slack : 1.595
+TNS   : 0.000
+
+Type  : Fast Model Removal 'u_clk|u_pll|pll|clk[0]'
+Slack : 3.201
+TNS   : 0.000
+
+Type  : Fast Model Minimum Pulse Width 'CLOCK_50'
+Slack : 9.000
+TNS   : 0.000
+
+Type  : Fast Model Minimum Pulse Width 'u_clk|u_pll|pll|clk[0]'
+Slack : 19.000
+TNS   : 0.000
+
+------------------------------------------------------------
