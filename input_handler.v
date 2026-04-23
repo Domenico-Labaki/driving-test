@@ -1,8 +1,8 @@
 // ============================================================================
 // input_handler.v
 // Debounces the noisy mechanical inputs from the DE2 board.
-//   - KEY[0] (active-low) -> steer_left
-//   - KEY[1] (active-low) -> steer_right
+//   - KEY[0] (active-low) -> steer_right
+//   - KEY[1] (active-low) -> steer_left
 //   - SW[0]  (active-high) -> accel
 //   - SW[1]  (active-high) -> brake
 //
@@ -27,8 +27,8 @@ module input_handler (
     reg [2:0] cnt_l,  cnt_r,  cnt_a,  cnt_b;
     reg       curr_l, curr_r, curr_a, curr_b;
 
-    wire want_l = ~KEY_raw[0];   // invert active-low KEY
-    wire want_r = ~KEY_raw[1];
+    wire want_r = ~KEY_raw[0];   // invert active-low KEY
+    wire want_l = ~KEY_raw[1];
     wire want_a =  SW_raw[0];
     wire want_b =  SW_raw[1];
 
