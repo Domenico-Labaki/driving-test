@@ -55,8 +55,8 @@ module score_display (
             HEX1 <= seg7(4'd0);           // tens  (always 0, speed max=7)
             HEX2 <= seg7(4'd0);           // hundreds (always 0)
             HEX3 <= seg7(4'd0);
-            HEX4 <= seg7(cd_tens);
-            HEX5 <= seg7(cd_units);
+            HEX4 <= seg7(cd_units);
+            HEX5 <= seg7(cd_tens);
         end
     end
 

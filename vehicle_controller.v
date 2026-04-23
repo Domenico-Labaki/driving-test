@@ -48,6 +48,7 @@ module vehicle_controller (
     // --- Throttle sub-dividers so speed doesn't saturate in one tick ---
     reg [4:0] throttle_cnt;
     reg [2:0] move_cnt;
+    wire [2:0] bounce_step = (speed > 3'd1) ? ((speed + 3'd1) >> 1) : 3'd1;
 
     function on_road_bbox;
         input [9:0] x;
@@ -109,6 +110,10 @@ module vehicle_controller (
                     else if (accel) begin
                         if (speed != MAX_SPEED) speed <= speed + 1;
                     end
+                    else begin
+                        // Passive friction while coasting.
+                        if (speed != 0) speed <= speed - 1;
+                    end
                 end
 
                 // --- Smooth steering: 45-degree steps on button edge ---
@@ -121,106 +126,114 @@ module vehicle_controller (
                 move_cnt <= move_cnt + 1;
                 if (move_cnt == 3'd3) begin
                     move_cnt <= 3'd0;
-
-                    case (direction)
+                    // Keep heading stable at zero speed; prevents in-place spin.
+                    if (speed != 0) case (direction)
                         DIR_UP: begin
-                            if (speed != 0 && veh_y > speed && on_road_bbox(veh_x, veh_y - {1'b0, speed})) begin
+                            if (veh_y > speed && on_road_bbox(veh_x, veh_y - {1'b0, speed})) begin
                                 veh_y <= veh_y - {1'b0, speed};
                             end
-                            else if (veh_y + speed < 9'd480-12 && on_road_bbox(veh_x, veh_y + {1'b0, speed})) begin
-                                veh_y     <= veh_y + {1'b0, speed};
+                            else if (veh_y + bounce_step < 9'd480-12 && on_road_bbox(veh_x, veh_y + {1'b0, bounce_step})) begin
+                                veh_y     <= veh_y + {1'b0, bounce_step};
                                 direction <= DIR_DOWN;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_UP_RIGHT: begin
-                            if (speed != 0 && veh_x + speed < 10'd640-20 &&
+                            if (veh_x + speed < 10'd640-20 &&
                                 veh_y > ((speed + 3'd1) >> 1) &&
                                 on_road_bbox(veh_x + {1'b0, speed}, veh_y - {1'b0, ((speed + 3'd1) >> 1)})) begin
                                 veh_x <= veh_x + {1'b0, speed};
                                 veh_y <= veh_y - {1'b0, ((speed + 3'd1) >> 1)};
                             end
-                            else if (veh_x > speed &&
-                                     veh_y + ((speed + 3'd1) >> 1) < 9'd480-12 &&
-                                     on_road_bbox(veh_x - {1'b0, speed}, veh_y + {1'b0, ((speed + 3'd1) >> 1)})) begin
-                                veh_x     <= veh_x - {1'b0, speed};
-                                veh_y     <= veh_y + {1'b0, ((speed + 3'd1) >> 1)};
+                            else if (veh_x > bounce_step &&
+                                     veh_y + ((bounce_step + 3'd1) >> 1) < 9'd480-12 &&
+                                     on_road_bbox(veh_x - {1'b0, bounce_step}, veh_y + {1'b0, ((bounce_step + 3'd1) >> 1)})) begin
+                                veh_x     <= veh_x - {1'b0, bounce_step};
+                                veh_y     <= veh_y + {1'b0, ((bounce_step + 3'd1) >> 1)};
                                 direction <= DIR_DOWN_LEFT;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_RIGHT: begin
-                            if (speed != 0 && veh_x + speed < 10'd640-20 && on_road_bbox(veh_x + {1'b0, speed}, veh_y)) begin
+                            if (veh_x + speed < 10'd640-20 && on_road_bbox(veh_x + {1'b0, speed}, veh_y)) begin
                                 veh_x <= veh_x + {1'b0, speed};
                             end
-                            else if (veh_x > speed && on_road_bbox(veh_x - {1'b0, speed}, veh_y)) begin
-                                veh_x     <= veh_x - {1'b0, speed};
+                            else if (veh_x > bounce_step && on_road_bbox(veh_x - {1'b0, bounce_step}, veh_y)) begin
+                                veh_x     <= veh_x - {1'b0, bounce_step};
                                 direction <= DIR_LEFT;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_DOWN_RIGHT: begin
-                            if (speed != 0 && veh_x + speed < 10'd640-20 &&
+                            if (veh_x + speed < 10'd640-20 &&
                                 veh_y + ((speed + 3'd1) >> 1) < 9'd480-12 &&
                                 on_road_bbox(veh_x + {1'b0, speed}, veh_y + {1'b0, ((speed + 3'd1) >> 1)})) begin
                                 veh_x <= veh_x + {1'b0, speed};
                                 veh_y <= veh_y + {1'b0, ((speed + 3'd1) >> 1)};
                             end
-                            else if (veh_x > speed && veh_y > ((speed + 3'd1) >> 1) &&
-                                     on_road_bbox(veh_x - {1'b0, speed}, veh_y - {1'b0, ((speed + 3'd1) >> 1)})) begin
-                                veh_x     <= veh_x - {1'b0, speed};
-                                veh_y     <= veh_y - {1'b0, ((speed + 3'd1) >> 1)};
+                            else if (veh_x > bounce_step && veh_y > ((bounce_step + 3'd1) >> 1) &&
+                                     on_road_bbox(veh_x - {1'b0, bounce_step}, veh_y - {1'b0, ((bounce_step + 3'd1) >> 1)})) begin
+                                veh_x     <= veh_x - {1'b0, bounce_step};
+                                veh_y     <= veh_y - {1'b0, ((bounce_step + 3'd1) >> 1)};
                                 direction <= DIR_UP_LEFT;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_DOWN: begin
-                            if (speed != 0 && veh_y + speed < 9'd480-12 && on_road_bbox(veh_x, veh_y + {1'b0, speed})) begin
+                            if (veh_y + speed < 9'd480-12 && on_road_bbox(veh_x, veh_y + {1'b0, speed})) begin
                                 veh_y <= veh_y + {1'b0, speed};
                             end
-                            else if (veh_y > speed && on_road_bbox(veh_x, veh_y - {1'b0, speed})) begin
-                                veh_y     <= veh_y - {1'b0, speed};
+                            else if (veh_y > bounce_step && on_road_bbox(veh_x, veh_y - {1'b0, bounce_step})) begin
+                                veh_y     <= veh_y - {1'b0, bounce_step};
                                 direction <= DIR_UP;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_DOWN_LEFT: begin
-                            if (speed != 0 && veh_x > speed &&
+                            if (veh_x > speed &&
                                 veh_y + ((speed + 3'd1) >> 1) < 9'd480-12 &&
                                 on_road_bbox(veh_x - {1'b0, speed}, veh_y + {1'b0, ((speed + 3'd1) >> 1)})) begin
                                 veh_x <= veh_x - {1'b0, speed};
                                 veh_y <= veh_y + {1'b0, ((speed + 3'd1) >> 1)};
                             end
-                            else if (veh_x + speed < 10'd640-20 && veh_y > ((speed + 3'd1) >> 1) &&
-                                     on_road_bbox(veh_x + {1'b0, speed}, veh_y - {1'b0, ((speed + 3'd1) >> 1)})) begin
-                                veh_x     <= veh_x + {1'b0, speed};
-                                veh_y     <= veh_y - {1'b0, ((speed + 3'd1) >> 1)};
+                            else if (veh_x + bounce_step < 10'd640-20 && veh_y > ((bounce_step + 3'd1) >> 1) &&
+                                     on_road_bbox(veh_x + {1'b0, bounce_step}, veh_y - {1'b0, ((bounce_step + 3'd1) >> 1)})) begin
+                                veh_x     <= veh_x + {1'b0, bounce_step};
+                                veh_y     <= veh_y - {1'b0, ((bounce_step + 3'd1) >> 1)};
                                 direction <= DIR_UP_RIGHT;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_LEFT: begin
-                            if (speed != 0 && veh_x > speed && on_road_bbox(veh_x - {1'b0, speed}, veh_y)) begin
+                            if (veh_x > speed && on_road_bbox(veh_x - {1'b0, speed}, veh_y)) begin
                                 veh_x <= veh_x - {1'b0, speed};
                             end
-                            else if (veh_x + speed < 10'd640-20 && on_road_bbox(veh_x + {1'b0, speed}, veh_y)) begin
-                                veh_x     <= veh_x + {1'b0, speed};
+                            else if (veh_x + bounce_step < 10'd640-20 && on_road_bbox(veh_x + {1'b0, bounce_step}, veh_y)) begin
+                                veh_x     <= veh_x + {1'b0, bounce_step};
                                 direction <= DIR_RIGHT;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
 
                         DIR_UP_LEFT: begin
-                            if (speed != 0 && veh_x > speed && veh_y > ((speed + 3'd1) >> 1) &&
+                            if (veh_x > speed && veh_y > ((speed + 3'd1) >> 1) &&
                                 on_road_bbox(veh_x - {1'b0, speed}, veh_y - {1'b0, ((speed + 3'd1) >> 1)})) begin
                                 veh_x <= veh_x - {1'b0, speed};
                                 veh_y <= veh_y - {1'b0, ((speed + 3'd1) >> 1)};
                             end
-                            else if (veh_x + speed < 10'd640-20 &&
-                                     veh_y + ((speed + 3'd1) >> 1) < 9'd480-12 &&
-                                     on_road_bbox(veh_x + {1'b0, speed}, veh_y + {1'b0, ((speed + 3'd1) >> 1)})) begin
-                                veh_x     <= veh_x + {1'b0, speed};
-                                veh_y     <= veh_y + {1'b0, ((speed + 3'd1) >> 1)};
+                            else if (veh_x + bounce_step < 10'd640-20 &&
+                                     veh_y + ((bounce_step + 3'd1) >> 1) < 9'd480-12 &&
+                                     on_road_bbox(veh_x + {1'b0, bounce_step}, veh_y + {1'b0, ((bounce_step + 3'd1) >> 1)})) begin
+                                veh_x     <= veh_x + {1'b0, bounce_step};
+                                veh_y     <= veh_y + {1'b0, ((bounce_step + 3'd1) >> 1)};
                                 direction <= DIR_DOWN_RIGHT;
+                                if (speed != 0) speed <= speed - 1;
                             end
                         end
                     endcase

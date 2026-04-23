@@ -43,7 +43,7 @@ the STOP zone** (red tint), follow the loop and slalom, and finally **come to a
 complete halt inside the PARK zone** (yellow tint, bottom-left) to pass.
 
 - 3 lives — each collision costs one.
-- Red LEDs flash during the collision penalty.
+- Red LEDs flash during the collision penalty, including cone hits.
 - Green LEDs show a speed thermometer and light up fully on PASS.
 - LCD displays a message for each game state.
 - Audio tones: 220 Hz on collision, 880 Hz on PASS, 440 Hz while in STOP/PARK zones.
@@ -88,8 +88,8 @@ Zones (required for PASS):
 - **PARK zone** — x∈[20,120], y∈[420,470], part of segment G.
 
 Cones are drawn as small 6×6 orange squares at 10 positions that visually
-match circuit.jpeg. They are decorative only; the collision rule is "car
-bounding box must be fully inside the union of road segments".
+match circuit.jpeg. They are also collision hazards, so driving into one
+triggers the same penalty and red-light flash as leaving the road.
 
 ---
 

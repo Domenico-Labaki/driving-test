@@ -14,6 +14,9 @@
 //   H/I/J: Left bay    -- parking approach notch
 //   K: FINISH lane     -- bottom horizontal strip
 //
+// Cone markers are also treated as hazards so hitting one triggers the same
+// collision penalty / red-LED flash as leaving the road.
+//
 // Special zones:
 //   STOP zone    -- top-center (x=280..360, y=40..90)   (overlap with A)
 //   PARK zone    -- bottom-left of FINISH (x=20..120, y=420..470)
@@ -52,7 +55,21 @@ module collision_detector (
     wire on_road = in_A | in_B | in_C | in_D | in_E | in_F | in_G |
                    in_H | in_I | in_J | in_K;
 
-    assign collision_detected = ~on_road;
+    // Cone markers match the small orange squares drawn in vga_controller.v.
+    wire hit_c1  = (x0 < 10'd173) && (x1 > 10'd167) && (y0 < 9'd108) && (y1 > 9'd102);
+    wire hit_c2  = (x0 < 10'd113) && (x1 > 10'd107) && (y0 < 9'd173) && (y1 > 9'd167);
+    wire hit_c3  = (x0 < 10'd153) && (x1 > 10'd147) && (y0 < 9'd238) && (y1 > 9'd232);
+    wire hit_c4  = (x0 < 10'd258) && (x1 > 10'd252) && (y0 < 9'd158) && (y1 > 9'd152);
+    wire hit_c5  = (x0 < 10'd318) && (x1 > 10'd312) && (y0 < 9'd303) && (y1 > 9'd297);
+    wire hit_c6  = (x0 < 10'd318) && (x1 > 10'd312) && (y0 < 9'd388) && (y1 > 9'd382);
+    wire hit_c7  = (x0 < 10'd563) && (x1 > 10'd557) && (y0 < 9'd158) && (y1 > 9'd152);
+    wire hit_c8  = (x0 < 10'd563) && (x1 > 10'd557) && (y0 < 9'd388) && (y1 > 9'd382);
+    wire hit_c9  = (x0 < 10'd178) && (x1 > 10'd172) && (y0 < 9'd303) && (y1 > 9'd297);
+    wire hit_c10 = (x0 < 10'd178) && (x1 > 10'd172) && (y0 < 9'd388) && (y1 > 9'd382);
+    wire on_cone = hit_c1 | hit_c2 | hit_c3 | hit_c4 | hit_c5 |
+                   hit_c6 | hit_c7 | hit_c8 | hit_c9 | hit_c10;
+
+    assign collision_detected = (~on_road) | on_cone;
 
     // Start line: thin strip near the initial car position in segment A
     assign at_start_line =

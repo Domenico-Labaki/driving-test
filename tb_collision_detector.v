@@ -27,6 +27,10 @@ module tb_collision_detector;
         $display("Stop (350,60): collision=%b stop=%b (expect 0,1)",
                  collision_detected, in_stop_zone);
 
+        // Cone marker on the road (should now count as a collision hazard)
+        veh_x = 250; veh_y = 150; #10;
+        $display("Cone (250,150): collision=%b (expect 1)", collision_detected);
+
         // Park zone
         veh_x = 40; veh_y = 420; #10;
         $display("Park (40,420): collision=%b park=%b (expect 0,1)",
